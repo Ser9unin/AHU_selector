@@ -1,12 +1,8 @@
-.table_input {
-    max-width: 200x;
-    width: 80%;
-    min-width: 50px;
-  }
 
 .nav-link, .navbar-brand {
     color: #ffffff;
 }
+
 .nav-link:hover, .navbar-brand:hover {
     color: #E74C3C;
 }
@@ -18,4 +14,51 @@
     margin-top: 20%;
     text-align: center;
     color: #E74C3C;
+}
+
+.container
+{
+    display: flex;
+    flex: content;
+    flex-wrap: wrap;
+    justify-content: right;
+    border: 2px solid #000000;
+    border-radius: 5px;
+    width: 80%;
+    padding: 20px;
+}
+
+.container table{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: flex-start;
+    margin: 5px;
+}
+
+.container table th{
+    border: 2px solid #000000;
+    border-radius: 5px;
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 5px;
+}
+
+.container table td{
+    border: 2px solid #000000;
+    border-radius: 5px;
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 10px;
+    align-items: center;
+}
+
+input{
+    text-align: center;
+}
+
+.control_button{
+    max-width: 200px;
+    width: fit-content;
+    height: fit-content;
 }

@@ -56,6 +56,7 @@ func init() {
 func main() {
 	http.HandleFunc("/", index)
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./web/static"))))
+	http.Handle("/javascript/", http.StripPrefix("/javascript/", http.FileServer(http.Dir("./web/javascript"))))
 	http.HandleFunc("/get_AHU", get_AHU)
 	http.ListenAndServe(":8080", nil)
 }
@@ -172,7 +173,7 @@ func AUU_get_list(ahu_table []Single_AHU) []Single_AUU {
 
 	//csv unmarshall, it is done in order not to hardcode units in this file,
 	//so anyone can update unit list
-	auu_file, err := os.ReadFile("AUU_list2.csv")
+	auu_file, err := os.ReadFile("./tools/AUU_list2.csv")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -196,7 +197,7 @@ func AUU_calc(gcalc float32, connection_side string, auu_list []Single_AUU, pres
 	var found bool
 	var pump_head int
 
-	// choose unit from list on units
+	// choose unit from list of units
 	for _, element := range auu_list {
 		if gcalc < element.AQT_Gnom && connection_side == element.Connection_side {
 			found = true
@@ -206,14 +207,19 @@ func AUU_calc(gcalc float32, connection_side string, auu_list []Single_AUU, pres
 				aqt_setting = gcalc / element.AQT_Gnom * 100
 				element.AQT_setting = float32(math.Round(float64(aqt_setting)))
 				gcalc_int := int(gcalc)
+				sbv_Kvs_f32 := float32(element.SBV_Kvs)
 
-				// for chosen AUU unit add pressure loss on fully open static valve, this how we will be sure that choosen pump will cover AHU dP and dP on AUU static valve
-				pressure_loss_dp += (gcalc_int / element.SBV_Kvs) * (gcalc_int / element.SBV_Kvs)
-
+				// for chosen AUU unit add pressure loss on fully open static valve, this how we will be sure that choosen pump will cover dP on AHU and dP on static valve
+				addon_dp_sbv := (gcalc / sbv_Kvs_f32) * (gcalc / sbv_Kvs_f32) * 100000
+				pressure_loss_dp += int(addon_dp_sbv)
 				element.Pump_setting, pump_head = pump.Get_pump_setting(element.Pump, gcalc_int, pressure_loss_dp)
-				element.SBV_setting = static_bv.Get_SBV_setting(element.Static_valve, gcalc_int, pressure_loss_dp, pump_head)
-				chosen_unit = element
-				return chosen_unit
+				if pump_head > pressure_loss_dp {
+					element.SBV_setting = static_bv.Get_SBV_setting(element.Static_valve, gcalc_int, pressure_loss_dp, pump_head)
+					chosen_unit = element
+					return chosen_unit
+				} else {
+					continue
+				}
 			}
 		}
 	}
