@@ -82,6 +82,7 @@ func get_AHU(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(err)
 
 	if err != nil {
+		// change this to flash error messages without rerendering page
 		tpl.ExecuteTemplate(w, "a_index.html", err)
 	} else {
 		tpl.ExecuteTemplate(w, "ahulist.html", AUU_unit_list)
