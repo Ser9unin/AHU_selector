@@ -70,10 +70,14 @@ func get_AHU(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
+
 	AHU_bytes, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	fmt.Printf("%s", AHU_bytes)
+
 	AHU_string := string(AHU_bytes)
 	AHU_table := parse_AHU_table(AHU_string)
 
