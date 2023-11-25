@@ -77,7 +77,15 @@ func get_AHU(w http.ResponseWriter, r *http.Request) {
 	AHU_string := string(AHU_bytes)
 	AHU_table := parse_AHU_table(AHU_string)
 
-	AUU_unit_list := AUU_get_list(AHU_table)
+	AUU_unit_list, err := AUU_get_list(AHU_table)
+
+	fmt.Println(err)
+
+	if err != nil {
+		tpl.ExecuteTemplate(w, "a_index.html", err)
+	} else {
+		tpl.ExecuteTemplate(w, "ahulist.html", AUU_unit_list)
+	}
 
 	for _, element := range AHU_table {
 		fmt.Println(element)
@@ -85,8 +93,6 @@ func get_AHU(w http.ResponseWriter, r *http.Request) {
 	for _, element := range AUU_unit_list {
 		fmt.Println(element)
 	}
-
-	tpl.ExecuteTemplate(w, "ahulist.html", AUU_unit_list)
 }
 
 // get data from form with multiple inputs as []byte and put it in []Single_AHU structs
@@ -136,6 +142,19 @@ func parse_AHU_table(ahu_string string) []Single_AHU {
 		case "Connection_side":
 			AHU_unit.Connection_side = value
 		}
+
+		/*if AHU_unit.LoadQ < 0 {
+			error placeholder
+		}*/
+
+		/*if AHU_unit.Supply_T1 <= AHU_unit.Return_T2 {
+			error placeholder
+		}*/
+
+		/*if AHU_unit.Pressure_loss_dP < 0 {
+			error placeholder
+		}*/
+
 		// put all Single_AHU into AHU_table
 		if AHU_unit.Connection_side != "" {
 			AHU_table = append(AHU_table, AHU_unit)
@@ -165,7 +184,7 @@ func str_to_int(value string) int {
 }
 
 // creates list of control units based on list of airhandling units
-func AUU_get_list(ahu_table []Single_AHU) []Single_AUU {
+func AUU_get_list(ahu_table []Single_AHU) ([]Single_AUU, error) {
 	var auu_new Single_AUU
 	var auu_table []Single_AUU
 	var gcalc float32
@@ -184,24 +203,27 @@ func AUU_get_list(ahu_table []Single_AHU) []Single_AUU {
 	//chose unit based on flow
 	for _, element := range ahu_table {
 		gcalc = float32((element.LoadQ / (element.Supply_T1 - element.Return_T2))) * K
-		auu_new = AUU_calc(gcalc, element.Connection_side, auu_list, element.Pressure_loss_dP)
+		auu_new, err = AUU_calc(gcalc, element.Connection_side, auu_list, element.Pressure_loss_dP)
 		auu_table = append(auu_table, auu_new)
 	}
-	return auu_table
+	return auu_table, err
 }
 
 // chosing unit based on flow,
-func AUU_calc(gcalc float32, connection_side string, auu_list []Single_AUU, pressure_loss_dp int) Single_AUU {
+func AUU_calc(gcalc float32, connection_side string, auu_list []Single_AUU, pressure_loss_dp int) (Single_AUU, error) {
 	var chosen_unit Single_AUU
 	var aqt_setting float32
 	var found bool
 	var pump_head int
+	var errPump error
 
 	// choose unit from list of units
 	for _, element := range auu_list {
+
 		if gcalc < element.AQT_Gnom && connection_side == element.Connection_side {
 			found = true
 			fmt.Println("FOUND!")
+			fmt.Print(element.Unit_ID)
 			// if found - calculate parameters of chosen unit AQT_setting, Pump_setting, SBV_setting
 			if found {
 				aqt_setting = gcalc / element.AQT_Gnom * 100
@@ -212,16 +234,18 @@ func AUU_calc(gcalc float32, connection_side string, auu_list []Single_AUU, pres
 				// for chosen AUU unit add pressure loss on fully open static valve, this how we will be sure that choosen pump will cover dP on AHU and dP on static valve
 				addon_dp_sbv := (gcalc / sbv_Kvs_f32) * (gcalc / sbv_Kvs_f32) * 100000
 				pressure_loss_dp += int(addon_dp_sbv)
-				element.Pump_setting, pump_head = pump.Get_pump_setting(element.Pump, gcalc_int, pressure_loss_dp)
+
+				element.Pump_setting, pump_head, errPump = pump.Get_pump_setting(element.Pump, gcalc_int, pressure_loss_dp)
+
 				if pump_head > pressure_loss_dp {
 					element.SBV_setting = static_bv.Get_SBV_setting(element.Static_valve, gcalc_int, pressure_loss_dp, pump_head)
 					chosen_unit = element
-					return chosen_unit
+					return chosen_unit, nil
 				} else {
 					continue
 				}
 			}
 		}
 	}
-	return Single_AUU{}
+	return Single_AUU{}, errPump
 }
