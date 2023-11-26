@@ -10,23 +10,67 @@
         <link rel="stylesheet" src="static/styles.css">
         <script defer src = "javascript/scripts.js"></script>
         <script>
-            /*document.addEventListener('DOMContentLoaded', function(){
+            document.addEventListener('DOMContentLoaded', function(){
               const sendForm = document.getElementById('AHU_list');
+              const result = document.getElementById('AUU_list');
 
               sendForm.addEventListener('submit', (event) => {
                 var T1data = document.querySelectorAll('input[name="T1"]');
                 var T2data = document.querySelectorAll('input[name="T2"]');
 
+                event.preventDefault();
+
+                //check if T1 > T2, if not we can't calculate our unit.
                 for (let i = 0; i < T1data.length; i++){
                   if (T1data[i].value < T2data[i].value){
                     alert('T1 не может быть меньше T2');
-                    T1data[i].focus();
-                    event.preventDefault();
+                    T1data[i].focus();                    
                     return false;
                   }
                 }
+
+                //run AJAX request and rerened only result of calculation
+                 
+                var ajreq = new XMLHttpRequest();
+                const myform = new URLSearchParams(new FormData(sendForm)).toString()
+
+                console.log(myform);
+              
+                  ajreq.onreadystatechange = function () {
+                    if (ajreq.readyState === 4 && ajreq.status === 200) {
+                      var data = JSON.parse(ajreq.responseText);
+                      result.innerHTML = "";
+                      renderHTML(data);
+                    }
+                  }
+
+                  ajreq.open("POST", '/get_AHU', true);
+                  ajreq.send(myform);
+
+                  function renderHTML(data) {
+                    var htmlFullString = "";
+                    var htmlPartString = "";
+
+                    for (i = 0; i < data.length; i++) {
+                        htmlPartString += "<tr>" + 
+                          "<td>" + data[i].Unit_ID + "</td>"
+                          + "<td>" + data[i].Code + "</td>"
+                          + "<td>" + data[i].DN + "</td>"
+                          + "<td>" + data[i].Pump + "</td>"
+                          + "<td>" + data[i].Pump_setting + "</td>"
+                          + "<td>" + data[i].AQT_setting + "</td>"
+                          + "<td>" + data[i].Static_valve + "</td>"
+                          + "<td>" + data[i].Static_valve_setting + "</td>"
+                          + "</tr>"
+                    }
+                    htmlFullString += '<table id="AUU_units"><tr><th>Название узла</th><th>Кодовый номер</th><th>DN</th><th>Тип насоса</th>'
+                          + '<th>Настройка насоса</th><th>Настройка AQT-R</th><th>Тип РБК</th><th>Настройка РБК</th></tr>'
+                          + htmlPartString
+                          + '</table>'
+                    result.insertAdjacentHTML('beforeend', htmlFullString);
+                  }
               })
-            });*/
+            });
         </script>
         <title>index</title>
     </head>
@@ -80,36 +124,10 @@
             </div>
           </form>
         </div>
-        <div class="container" id="AUU_list" >
-          <table id="AUU_units">
-            <tr>
-                    <th>Название узла</th>
-                    <th>Кодовый номер</th>
-                    <th>DN</th>
-                    <th>Тип насоса</th>
-                    <th>Настройка насоса</th>
-                    <th>Настройка AQT-R</th>
-                    <th>Тип РБК</th>
-                    <th>Настройка РБК</th>
-            </tr>
-            {{range .}}
-            <tr>
-                    <td></td>
-                    <td>{{ .Unit_ID}}</td>
-                    <td>{{ .Code_number}}</td>
-                    <td>{{ .DN}}</td>
-                    <td>{{ .Pump}}</td>
-                    <td>{{ .Pump_setting}}</td>
-                    <td>{{ .AQT_setting}}</td>
-                    <td>{{ .Static_valve}}</td>
-                    <td>{{ .SBV_setting}}</td>
-            </tr>
-            {{ end }}
-    </table>
-        </div>
+        <div class="container" id="AUU_list" ></div>
           <script>
-            const form = document.getElementById('AHU_list');
-            const result = document.getElementById('AUU_units');
+            /*const form = document.getElementById('AHU_list');
+            const result = document.getElementById('AUU_list');
 
             form.addEventListener('submit', function(event){
               event.preventDefault();
@@ -121,13 +139,38 @@
               ajreq.onreadystatechange = function () {
                 if (ajreq.readyState === 4 && ajreq.status === 200) {
                   var data = JSON.parse(ajreq.responseText);
-                  result.innerHTML = data;
+                  result.innerHTML = "";
+                  renderHTML(data);
                 }
               }
 
               ajreq.open("POST", '/get_AHU', true);
               ajreq.send(myform)
-            });
+            })
+
+            function renderHTML(data) {
+              var htmlFullString = "";
+              var htmlPartString = "";
+
+              for (i = 0; i < data.length; i++) {
+                  htmlPartString += "<tr>" + 
+                    "<td>" + data[i].Unit_ID + "</td>"
+                    + "<td>" + data[i].Code + "</td>"
+                    + "<td>" + data[i].DN + "</td>"
+                    + "<td>" + data[i].Pump + "</td>"
+                    + "<td>" + data[i].Pump_setting + "</td>"
+                    + "<td>" + data[i].AQT_setting + "</td>"
+                    + "<td>" + data[i].Static_valve + "</td>"
+                    + "<td>" + data[i].Static_valve_setting + "</td>"
+                    + "</tr>"
+              }
+              htmlFullString += '<table id="AUU_units"><tr><th>Название узла</th><th>Кодовый номер</th><th>DN</th><th>Тип насоса</th>'
+                    + '<th>Настройка насоса</th><th>Настройка AQT-R</th><th>Тип РБК</th><th>Настройка РБК</th></tr>'
+                    + htmlPartString
+                    + '</table>'
+              result.insertAdjacentHTML('beforeend', htmlFullString);
+            }*/
           </script>
+
   </body>
 </html>

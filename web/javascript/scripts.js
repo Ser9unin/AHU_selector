@@ -11,13 +11,13 @@ function addRow(){
   AHU_name.innerHTML = '<input type ="text" name = "AHU_name"></input>';  
 
   const Load = document.createElement("td");
-  Load.innerHTML = '<input type ="number" name = "Load" min = "0" required></input>';
+  Load.innerHTML = '<input type="number" name="Load" min = 0 value="1000" required/>';
 
   const T1cell = document.createElement("td");
-  T1cell.innerHTML = '<input type ="number" name = "T1" min = "20" max = "130" required></input>';
+  T1cell.innerHTML = '<input type="number" name="T1" min = 20 max = 130 value="95" required/>'
 
   const T2cell = document.createElement("td");
-  T2cell.innerHTML = '<input type ="number" name = "T2" min = "20" max = "130" required></input>';
+  T2cell.innerHTML = '<input type="number" name="dPahu" min = 0 value="10" required/>';
 
   const dPahu = document.createElement("td");
   dPahu.innerHTML = '<input type ="number" name = "dPahu" min = "0" required></input>';

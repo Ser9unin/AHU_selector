@@ -94,8 +94,8 @@ func get_AHU(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("Response JSON", AUU_json_list)
-
+	fmt.Printf("Response JSON %s", AUU_json_list)
+	fmt.Println()
 	if err != nil {
 		// change this to flash error messages without rerendering page
 		w.WriteHeader(http.StatusOK)
