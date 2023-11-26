@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"io"
@@ -31,21 +32,21 @@ type Single_AHU struct {
 }
 
 type Single_AUU struct {
-	Unit_ID         string  `csv:"Unit_ID"`
-	Connection_side string  `csv:"Connection_side"`
-	Code_number     string  `csv:"Code"`
-	AQT_type        string  `csv:"AQT_type"`
-	AQT_set_min     uint8   `csv:"AQT_set_min"`
-	AQT_dPmin       float32 `csv:"AQT_dPmin"` //measure kPa
-	AQT_Gnom        float32 `csv:"Gnom"`      //measure l/h
-	Tmax            string  `csv:"Tmax"`
-	Actuator        string  `csv:"Actuator"`
-	Static_valve    string  `csv:"Static_valve"`
-	SBV_Kvs         int     `csv:"SBV_Kvs"` //measure l/h3
-	SBV_setting     string  `csv:"Static_valve_setting"`
-	DN              string  `csv:"DN"`
-	Pump            string  `csv:"Pump"`
-	Pump_setting    int     `csv:"Pump_setting"`
+	Unit_ID         string  `csv:"Unit_ID" json:"Unit_ID"`
+	Connection_side string  `csv:"Connection_side" json:"Connection_side"`
+	Code_number     string  `csv:"Code" json:"Code"`
+	AQT_type        string  `csv:"AQT_type" json:"AQT_type"`
+	AQT_set_min     uint8   `csv:"AQT_set_min" json:"AQT_set_min"`
+	AQT_dPmin       float32 `csv:"AQT_dPmin" json:"AQT_dPmin"` //measure kPa
+	AQT_Gnom        float32 `csv:"Gnom" json:"Gnom"`           //measure l/h
+	Tmax            string  `csv:"Tmax" json:"Tmax"`
+	Actuator        string  `csv:"Actuator" json:"Actuator"`
+	Static_valve    string  `csv:"Static_valve" json:"Static_valve"`
+	SBV_Kvs         int     `csv:"SBV_Kvs" json:"SBV_Kvs"` //measure l/h3
+	SBV_setting     string  `csv:"Static_valve_setting" json:"Static_valve_setting"`
+	DN              string  `csv:"DN" json:"DN"`
+	Pump            string  `csv:"Pump" json:"Pump"`
+	Pump_setting    int     `csv:"Pump_setting" json:"Pump_setting"`
 	AQT_setting     float32
 }
 
@@ -67,6 +68,7 @@ func index(w http.ResponseWriter, r *http.Request) {
 
 func get_AHU(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
+		//tpl.ExecuteTemplate(w, "a_index.html", nil)
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
@@ -76,7 +78,8 @@ func get_AHU(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("%s", AHU_bytes)
+	fmt.Printf("Client says %s", AHU_bytes)
+	fmt.Println()
 
 	AHU_string := string(AHU_bytes)
 	AHU_table := parse_AHU_table(AHU_string)
@@ -85,11 +88,21 @@ func get_AHU(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println(err)
 
+	AUU_json_list, err := json.Marshal(AUU_unit_list)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	fmt.Println("Response JSON", AUU_json_list)
+
 	if err != nil {
 		// change this to flash error messages without rerendering page
-		tpl.ExecuteTemplate(w, "a_index.html", err)
+		w.WriteHeader(http.StatusOK)
 	} else {
-		tpl.ExecuteTemplate(w, "ahulist.html", AUU_unit_list)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(AUU_json_list)
 	}
 
 	for _, element := range AHU_table {
