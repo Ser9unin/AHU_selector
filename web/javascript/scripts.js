@@ -17,7 +17,7 @@ function addRow(){
   T1cell.innerHTML = '<input type="number" name="T1" min = 20 max = 130 value="95" required/>'
 
   const T2cell = document.createElement("td");
-  T2cell.innerHTML = '<input type="number" name="dPahu" min = 0 value="10" required/>';
+  T2cell.innerHTML = '<input type="number" name="T2" min = 0 value="70" required/>';
 
   const dPahu = document.createElement("td");
   dPahu.innerHTML = '<input type ="number" name = "dPahu" min = "0" required></input>';
